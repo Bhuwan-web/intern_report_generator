@@ -9,7 +9,7 @@ import os
 from docx import Document
 
 # Add src directory to path
-sys.path.append("src")
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 
 def create_test_document():

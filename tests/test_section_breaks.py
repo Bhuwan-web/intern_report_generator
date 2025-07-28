@@ -11,7 +11,7 @@ from docx.enum.section import WD_SECTION_START
 from docx.shared import Pt
 
 # Add src directory to path
-sys.path.append("src")
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 
 def create_document_with_section_breaks():
