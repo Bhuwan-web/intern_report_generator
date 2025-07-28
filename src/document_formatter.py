@@ -13,8 +13,61 @@ import os
 
 
 class IOSTDocumentFormatter:
+    def fix_heading_line_breaks(self):
+        """Ensure proper line breaks between headings and paragraphs, and remove excess empty lines"""
+        paragraphs = self.doc.paragraphs
+        i = 0
+        while i < len(paragraphs):
+            para = paragraphs[i]
+            text = para.text.strip()
+
+            # Check for headings
+            is_chapter = self.is_chapter_heading(text)
+            is_section = any(
+                text.startswith(f"{x}.{y}") for x in range(1, 20) for y in range(1, 20)
+            ) and not any(
+                text.startswith(f"{x}.{y}.{z}")
+                for x in range(1, 20)
+                for y in range(1, 20)
+                for z in range(1, 20)
+            )
+            is_subsection = any(
+                text.startswith(f"{x}.{y}.{z}")
+                for x in range(1, 20)
+                for y in range(1, 20)
+                for z in range(1, 20)
+            )
+
+            # Remove empty paragraphs before headings
+            if (is_chapter or is_section or is_subsection) and i > 0:
+                prev_para = paragraphs[i - 1]
+                if prev_para.text.strip() == "":
+                    p = prev_para._element
+                    try:
+                        p.getparent().remove(p)
+                        # After removal, stay at same index
+                        i -= 1
+                        continue
+                    except Exception:
+                        pass
+
+                # Skip automatic line break insertion - let the academic line break manager handle this
+                # This prevents errors and delegates proper spacing to the specialized line break manager
+                # Remove extra empty paragraphs after heading
+                j = i + 2
+                while j < len(paragraphs) and paragraphs[j].text.strip() == "":
+                    p = paragraphs[j]._element
+                    try:
+                        p.getparent().remove(p)
+                    except Exception:
+                        pass
+                    j += 1
+
+            i += 1
+
     def __init__(self, document_path):
         """Initialize formatter with document path"""
+        self.doc_path = document_path
         self.doc = Document(document_path)
         self.setup_styles()
 
@@ -261,7 +314,9 @@ class IOSTDocumentFormatter:
                     # Create a new paragraph with page break
                     new_para = paragraph.insert_paragraph_before()
                     run = new_para.runs[0] if new_para.runs else new_para.add_run()
-                    run.add_break(break_type=6)  # Page break type
+                    from docx.enum.text import WD_BREAK
+
+                    run.add_break(WD_BREAK.PAGE)  # Page break
 
     def remove_excessive_empty_paragraphs(self):
         """Remove excessive empty paragraphs (keep max 1 between sections)"""
@@ -300,6 +355,9 @@ class IOSTDocumentFormatter:
 
         print("Formatting paragraphs...")
         self.format_paragraphs()
+
+        print("Fixing heading line breaks...")
+        self.fix_heading_line_breaks()
 
         print("Formatting tables...")
         self.format_tables()

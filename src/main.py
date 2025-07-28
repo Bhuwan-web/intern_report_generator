@@ -8,9 +8,24 @@ import sys
 import os
 from document_formatter import IOSTDocumentFormatter
 from academic_tools import analyze_document
-from enhanced_academic_tools import auto_fix_document
-from page_break_manager import optimize_document_breaks
-from spacing_optimizer import optimize_document_spacing
+from academic_line_break_manager import process_document_line_breaks
+
+try:
+    from integrated_academic_tools import process_document_integrated as auto_fix_document
+
+    print("🔧 Using integrated analysis and correction tools")
+    AI_AVAILABLE = True
+except ImportError:
+    try:
+        from enhanced_academic_tools import auto_fix_document
+
+        print("🤖 Using enhanced AI tools")
+        AI_AVAILABLE = True
+    except ImportError:
+        from lightweight_academic_tools import auto_fix_document
+
+        print("📝 Using lightweight rule-based tools")
+        AI_AVAILABLE = False
 
 
 def main():
@@ -23,10 +38,11 @@ def main():
         print("  format    - Format document according to IOST guidelines")
         print("  analyze   - Analyze language and citations")
         print("  autofix   - Automatically fix common language/citation issues")
+        print("  linebreaks - Apply academic line break standards")
         print("  breaks    - Optimize page breaks and remove unnecessary breaks")
         print("  spacing   - Optimize spacing between sections, headings, and content")
         print(
-            "  complete  - Full optimization: autofix, breaks, spacing, and format (recommended)"
+            "  complete  - Full optimization: autofix, linebreaks, breaks, spacing, and format (recommended)"
         )
         print("  both      - Format and analyze only")
         print("\nExamples:")
@@ -62,13 +78,10 @@ def main():
             # All further steps operate on final_path
             working_path = final_path
 
-            print("\n📄 OPTIMIZING PAGE BREAKS")
-            print("-" * 35)
-            optimize_document_breaks(working_path, output_path=final_path)
-
-            print("\n📏 OPTIMIZING SPACING")
-            print("-" * 25)
-            optimize_document_spacing(final_path, output_path=final_path)
+            print("\n📏 APPLYING ACADEMIC LINE BREAKS")
+            print("-" * 40)
+            process_document_line_breaks(working_path, output_path=final_path)
+            working_path = final_path
 
             print("\n🔧 FORMATTING DOCUMENT")
             print("-" * 30)
@@ -102,18 +115,12 @@ def main():
                 auto_fix_document(document_path)
                 base_name = os.path.splitext(os.path.basename(document_path))[0]
                 print(f"📄 Auto-fixed document: auto_fixed_{base_name}.docx")
-            if action == "breaks":
-                print("\n📄 OPTIMIZING PAGE BREAKS")
-                print("-" * 35)
-                optimize_document_breaks(document_path)
+            if action == "linebreaks":
+                print("\n📏 APPLYING ACADEMIC LINE BREAKS")
+                print("-" * 40)
+                process_document_line_breaks(document_path)
                 base_name = os.path.splitext(os.path.basename(document_path))[0]
-                print(f"📄 Page-optimized document: page_optimized_{base_name}.docx")
-            if action == "spacing":
-                print("\n📏 OPTIMIZING SPACING")
-                print("-" * 25)
-                optimize_document_spacing(document_path)
-                base_name = os.path.splitext(os.path.basename(document_path))[0]
-                print(f"📄 Spacing-optimized document: spacing_optimized_{base_name}.docx")
+                print(f"📄 Line break optimized document: line_break_fixed_{base_name}.docx")
             if action in ["format", "both"]:
                 print("\n� FORMATTING DOCUMENT")
                 print("-" * 30)
